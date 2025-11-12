@@ -26,6 +26,7 @@ import {
 } from "@fortawesome/free-solid-svg-icons";
 import ImageViewer from "./ImageViewer";
 import AnalysisDisplay from "./AnalysisDisplay";
+import MaintenanceRecordForm from "./MaintenanceRecordForm";
 import { useParams, useNavigate } from "react-router-dom";
 import { useAuth } from "../AuthContext";
 
@@ -699,6 +700,12 @@ const InspectionDetail = () => {
       <AnalysisDisplay
         inspectionId={inspection.id}
         images={maintenanceImages}
+      />
+
+      {/* Maintenance Record Form */}
+      <MaintenanceRecordForm
+        inspectionId={inspection.id}
+        inspection={inspection}
       />
 
       {/* Image Upload Modal */}
