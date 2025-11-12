@@ -28,6 +28,11 @@ const MaintenanceRecordForm = ({ inspectionId, inspection }) => {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const [activeTab, setActiveTab] = useState("inspector");
+  const [recordMetadata, setRecordMetadata] = useState({
+    createdAt: null,
+    updatedAt: null,
+    id: null,
+  });
 
   // Form state
   const [formData, setFormData] = useState({
@@ -111,6 +116,14 @@ const MaintenanceRecordForm = ({ inspectionId, inspection }) => {
       if (response.data) {
         // Map the response data to form fields
         const record = response.data;
+        
+        // Store metadata
+        setRecordMetadata({
+          createdAt: record.createdAt,
+          updatedAt: record.updatedAt,
+          id: record.id,
+        });
+        
         setFormData({
           inspectorName: record.inspectorName || "",
           inspectorId: record.inspectorId || "",
@@ -242,6 +255,24 @@ const MaintenanceRecordForm = ({ inspectionId, inspection }) => {
         {success && (
           <Alert variant="success" dismissible onClose={() => setSuccess("")}>
             {success}
+          </Alert>
+        )}
+
+        {/* Last Updated Badge */}
+        {recordMetadata.updatedAt && (
+          <Alert variant="info" className="d-flex justify-content-between align-items-center">
+            <div>
+              <strong>Maintenance Record Status:</strong>{" "}
+              <Badge bg={formData.recordStatus === "SUBMITTED" ? "primary" : formData.recordStatus === "APPROVED" ? "success" : "secondary"}>
+                {formData.recordStatus}
+              </Badge>
+            </div>
+            <div className="text-muted">
+              <small>
+                <strong>Last Updated:</strong>{" "}
+                {new Date(recordMetadata.updatedAt).toLocaleString()}
+              </small>
+            </div>
           </Alert>
         )}
 

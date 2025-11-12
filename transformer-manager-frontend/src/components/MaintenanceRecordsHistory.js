@@ -17,6 +17,8 @@ import {
   faEye,
   faExclamationTriangle,
   faCheckCircle,
+  faDownload,
+  faFileExcel,
 } from "@fortawesome/free-solid-svg-icons";
 import { useAuth } from "../AuthContext";
 
@@ -27,6 +29,7 @@ const MaintenanceRecordsHistory = ({ transformerId }) => {
   const [error, setError] = useState("");
   const [selectedRecord, setSelectedRecord] = useState(null);
   const [showDetailModal, setShowDetailModal] = useState(false);
+  const [downloading, setDownloading] = useState(false);
 
   useEffect(() => {
     fetchRecords();
@@ -76,6 +79,181 @@ const MaintenanceRecordsHistory = ({ transformerId }) => {
     setShowDetailModal(true);
   };
 
+  const convertToCSV = (data) => {
+    if (!data || data.length === 0) return "";
+
+    // Define headers
+    const headers = [
+      "Record ID",
+      "Inspection Date",
+      "Inspector Name",
+      "Inspector ID",
+      "Inspector Email",
+      "Transformer Status",
+      "Maintenance Priority",
+      "Voltage Phase A (V)",
+      "Voltage Phase B (V)",
+      "Voltage Phase C (V)",
+      "Current Phase A (A)",
+      "Current Phase B (A)",
+      "Current Phase C (A)",
+      "Power Factor",
+      "Frequency (Hz)",
+      "Ambient Temperature (°C)",
+      "Oil Temperature (°C)",
+      "Winding Temperature (°C)",
+      "Oil Level",
+      "Oil Color",
+      "Oil Analysis Remarks",
+      "Cooling System Condition",
+      "Bushing Condition",
+      "Tank Condition",
+      "Gauges Condition",
+      "Weather Condition",
+      "Load Condition",
+      "Detected Anomalies",
+      "Corrective Actions",
+      "Recommended Action",
+      "Scheduled Maintenance Date",
+      "Parts Replaced",
+      "Materials Used",
+      "Requires Follow-up",
+      "Follow-up Date",
+      "Follow-up Notes",
+      "Engineer Notes",
+      "Additional Remarks",
+      "Safety Observations",
+      "Compliance Check",
+      "Compliance Notes",
+      "Record Status",
+      "Created At",
+      "Updated At",
+      "Reviewed At",
+    ];
+
+    // Create CSV rows
+    const rows = data.map((record) => [
+      record.id || "",
+      record.inspection?.inspectionDate
+        ? new Date(record.inspection.inspectionDate).toLocaleString()
+        : "",
+      record.inspectorName || "",
+      record.inspectorId || "",
+      record.inspectorEmail || "",
+      record.transformerStatus || "",
+      record.maintenancePriority || "",
+      record.voltagePhaseA || "",
+      record.voltagePhaseB || "",
+      record.voltagePhaseC || "",
+      record.currentPhaseA || "",
+      record.currentPhaseB || "",
+      record.currentPhaseC || "",
+      record.powerFactor || "",
+      record.frequency || "",
+      record.ambientTemperature || "",
+      record.oilTemperature || "",
+      record.windingTemperature || "",
+      record.oilLevel || "",
+      record.oilColor || "",
+      record.oilAnalysisRemarks ? `"${record.oilAnalysisRemarks.replace(/"/g, '""')}"` : "",
+      record.coolingSystemCondition ? `"${record.coolingSystemCondition.replace(/"/g, '""')}"` : "",
+      record.bushingCondition ? `"${record.bushingCondition.replace(/"/g, '""')}"` : "",
+      record.tankCondition ? `"${record.tankCondition.replace(/"/g, '""')}"` : "",
+      record.gaugesCondition ? `"${record.gaugesCondition.replace(/"/g, '""')}"` : "",
+      record.weatherCondition || "",
+      record.loadCondition || "",
+      record.detectedAnomalies ? `"${record.detectedAnomalies.replace(/"/g, '""')}"` : "",
+      record.correctiveActions ? `"${record.correctiveActions.replace(/"/g, '""')}"` : "",
+      record.recommendedAction ? `"${record.recommendedAction.replace(/"/g, '""')}"` : "",
+      record.scheduledMaintenanceDate
+        ? new Date(record.scheduledMaintenanceDate).toLocaleString()
+        : "",
+      record.partsReplaced ? `"${record.partsReplaced.replace(/"/g, '""')}"` : "",
+      record.materialsUsed ? `"${record.materialsUsed.replace(/"/g, '""')}"` : "",
+      record.requiresFollowUp ? "Yes" : "No",
+      record.followUpDate
+        ? new Date(record.followUpDate).toLocaleString()
+        : "",
+      record.followUpNotes ? `"${record.followUpNotes.replace(/"/g, '""')}"` : "",
+      record.engineerNotes ? `"${record.engineerNotes.replace(/"/g, '""')}"` : "",
+      record.additionalRemarks ? `"${record.additionalRemarks.replace(/"/g, '""')}"` : "",
+      record.safetyObservations ? `"${record.safetyObservations.replace(/"/g, '""')}"` : "",
+      record.complianceCheck ? "Yes" : "No",
+      record.complianceNotes ? `"${record.complianceNotes.replace(/"/g, '""')}"` : "",
+      record.recordStatus || "",
+      record.createdAt ? new Date(record.createdAt).toLocaleString() : "",
+      record.updatedAt ? new Date(record.updatedAt).toLocaleString() : "",
+      record.reviewedAt ? new Date(record.reviewedAt).toLocaleString() : "",
+    ]);
+
+    // Combine headers and rows
+    const csvContent = [
+      headers.join(","),
+      ...rows.map((row) => row.join(",")),
+    ].join("\n");
+
+    return csvContent;
+  };
+
+  const handleDownloadCSV = () => {
+    try {
+      setDownloading(true);
+      
+      // Convert records to CSV
+      const csv = convertToCSV(records);
+      
+      // Create blob and download
+      const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+      const link = document.createElement("a");
+      const url = URL.createObjectURL(blob);
+      
+      // Generate filename with timestamp
+      const timestamp = new Date().toISOString().split('T')[0];
+      const filename = `maintenance_records_transformer_${transformerId}_${timestamp}.csv`;
+      
+      link.setAttribute("href", url);
+      link.setAttribute("download", filename);
+      link.style.visibility = "hidden";
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      
+      setDownloading(false);
+    } catch (err) {
+      console.error("Error downloading CSV:", err);
+      setError("Failed to download CSV file");
+      setDownloading(false);
+    }
+  };
+
+  const handleDownloadSingleRecordCSV = (record) => {
+    try {
+      // Convert single record to CSV
+      const csv = convertToCSV([record]);
+      
+      // Create blob and download
+      const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+      const link = document.createElement("a");
+      const url = URL.createObjectURL(blob);
+      
+      // Generate filename with record ID and date
+      const date = record.inspection?.inspectionDate
+        ? new Date(record.inspection.inspectionDate).toISOString().split('T')[0]
+        : new Date().toISOString().split('T')[0];
+      const filename = `maintenance_record_${record.id}_${date}.csv`;
+      
+      link.setAttribute("href", url);
+      link.setAttribute("download", filename);
+      link.style.visibility = "hidden";
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    } catch (err) {
+      console.error("Error downloading CSV:", err);
+      setError("Failed to download CSV file");
+    }
+  };
+
   if (loading) {
     return (
       <div className="text-center p-5">
@@ -92,11 +270,36 @@ const MaintenanceRecordsHistory = ({ transformerId }) => {
   return (
     <>
       <Card className="mb-4">
-        <Card.Header className="bg-info text-white">
+        <Card.Header className="bg-info text-white d-flex justify-content-between align-items-center">
           <h5 className="mb-0">
             <FontAwesomeIcon icon={faHistory} className="me-2" />
             Maintenance Records History
           </h5>
+          {records.length > 0 && (
+            <Button
+              variant="light"
+              size="sm"
+              onClick={handleDownloadCSV}
+              disabled={downloading}
+            >
+              {downloading ? (
+                <>
+                  <Spinner
+                    as="span"
+                    animation="border"
+                    size="sm"
+                    className="me-2"
+                  />
+                  Downloading...
+                </>
+              ) : (
+                <>
+                  <FontAwesomeIcon icon={faFileExcel} className="me-2" />
+                  Download All as CSV
+                </>
+              )}
+            </Button>
+          )}
         </Card.Header>
         <Card.Body>
           {records.length === 0 ? (
@@ -113,6 +316,7 @@ const MaintenanceRecordsHistory = ({ transformerId }) => {
                   <th>Priority</th>
                   <th>Recommended Action</th>
                   <th>Record Status</th>
+                  <th>Last Updated</th>
                   <th>Actions</th>
                 </tr>
               </thead>
@@ -148,13 +352,29 @@ const MaintenanceRecordsHistory = ({ transformerId }) => {
                       </Badge>
                     </td>
                     <td>
+                      <small className="text-muted">
+                        {record.updatedAt
+                          ? new Date(record.updatedAt).toLocaleString()
+                          : "N/A"}
+                      </small>
+                    </td>
+                    <td>
                       <Button
                         variant="outline-primary"
                         size="sm"
+                        className="me-2"
                         onClick={() => handleViewDetails(record)}
                       >
                         <FontAwesomeIcon icon={faEye} className="me-1" />
                         View
+                      </Button>
+                      <Button
+                        variant="outline-success"
+                        size="sm"
+                        onClick={() => handleDownloadSingleRecordCSV(record)}
+                      >
+                        <FontAwesomeIcon icon={faDownload} className="me-1" />
+                        CSV
                       </Button>
                     </td>
                   </tr>
@@ -172,7 +392,14 @@ const MaintenanceRecordsHistory = ({ transformerId }) => {
         size="xl"
       >
         <Modal.Header closeButton>
-          <Modal.Title>Maintenance Record Details</Modal.Title>
+          <Modal.Title>
+            Maintenance Record Details
+            {selectedRecord && (
+              <Badge bg="secondary" className="ms-3">
+                ID: {selectedRecord.id}
+              </Badge>
+            )}
+          </Modal.Title>
         </Modal.Header>
         <Modal.Body>
           {selectedRecord && (
@@ -519,6 +746,13 @@ const MaintenanceRecordsHistory = ({ transformerId }) => {
           )}
         </Modal.Body>
         <Modal.Footer>
+          <Button
+            variant="success"
+            onClick={() => handleDownloadSingleRecordCSV(selectedRecord)}
+          >
+            <FontAwesomeIcon icon={faDownload} className="me-2" />
+            Download as CSV
+          </Button>
           <Button variant="secondary" onClick={() => setShowDetailModal(false)}>
             Close
           </Button>
