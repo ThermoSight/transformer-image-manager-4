@@ -17,6 +17,8 @@ import InspectionList from "./components/InspectionList";
 import InspectionDetail from "./components/InspectionDetail";
 import InspectionUpload from "./components/InspectionUpload";
 import TransformerRecordDetail from "./components/TransformerRecordDetail";
+import MaintenanceRecordForm from "./components/maintenance/MaintenanceRecordForm";
+import MaintenanceRecordsPage from "./components/maintenance/MaintenanceRecordsPage";
 import ProtectedRoute from "./ProtectedRoute";
 import MoodleNavbar from "./components/MoodleNavbar";
 import "./App.css";
@@ -140,6 +142,22 @@ function App() {
                 element={
                   <ProtectedRoute>
                     <InspectionUpload />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/maintenance-records/:id"
+                element={
+                  <ProtectedRoute>
+                    <MaintenanceRecordForm />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/maintenance-records"
+                element={
+                  <ProtectedRoute>
+                    <MaintenanceRecordsPage />
                   </ProtectedRoute>
                 }
               />

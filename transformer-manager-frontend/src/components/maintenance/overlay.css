@@ -1,0 +1,9 @@
+/* Overlay styles for anomaly bounding boxes */
+.anomaly-box:hover {
+  outline: 2px solid #2196f3;
+}
+
+/* Container could be extended later for relative scaling */
+.overlay-container img {
+  display: block;
+}
