@@ -16,6 +16,7 @@ const MaintenanceRecordForm = () => {
   const [finalizing, setFinalizing] = useState(false);
   const [fields, setFields] = useState({});
   const [successMsg, setSuccessMsg] = useState("");
+  const [exporting, setExporting] = useState(false);
 
   const load = async () => {
     setLoading(true);
@@ -83,6 +84,25 @@ const MaintenanceRecordForm = () => {
       navigate('/maintenance-records');
     } catch (e) {
       setError(e.message || "Delete failed");
+    }
+  };
+
+  const exportPdf = async () => {
+    setExporting(true);
+    try {
+      const res = await axiosInstance.get(`/maintenance-records/${id}/export/pdf`, { responseType: 'blob' });
+      const url = window.URL.createObjectURL(new Blob([res.data], { type: 'application/pdf' }));
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', `maintenance-record-${id}.pdf`);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(url);
+    } catch (e) {
+      setError(e.message || "Export failed");
+    } finally {
+      setExporting(false);
     }
   };
 
@@ -168,6 +188,13 @@ const MaintenanceRecordForm = () => {
                   disabled={disableEdits || finalizing}
                 >
                   {finalizing ? "Finalizing..." : "Finalize"}
+                </Button>
+                <Button
+                  variant="outline-primary"
+                  onClick={exportPdf}
+                  disabled={exporting}
+                >
+                  {exporting ? "Exporting..." : "Export PDF"}
                 </Button>
                 <Button
                   variant="outline-danger"

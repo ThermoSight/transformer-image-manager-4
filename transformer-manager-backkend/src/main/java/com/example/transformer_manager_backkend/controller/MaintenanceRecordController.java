@@ -5,6 +5,8 @@ import com.example.transformer_manager_backkend.service.MaintenanceRecordService
 import com.example.transformer_manager_backkend.dto.MaintenanceRecordFormDTO;
 import com.example.transformer_manager_backkend.dto.MaintenanceRecordUpdateRequest;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
@@ -16,9 +18,12 @@ import java.util.List;
 public class MaintenanceRecordController {
 
     private final MaintenanceRecordService maintenanceRecordService;
+    private final com.example.transformer_manager_backkend.service.MaintenanceRecordPdfService pdfService;
 
-    public MaintenanceRecordController(MaintenanceRecordService maintenanceRecordService) {
+    public MaintenanceRecordController(MaintenanceRecordService maintenanceRecordService,
+                                       com.example.transformer_manager_backkend.service.MaintenanceRecordPdfService pdfService) {
         this.maintenanceRecordService = maintenanceRecordService;
+        this.pdfService = pdfService;
     }
 
     @PostMapping
@@ -92,5 +97,16 @@ public class MaintenanceRecordController {
     public ResponseEntity<Void> deleteRecord(@PathVariable Long id) {
         maintenanceRecordService.deleteRecord(id);
         return ResponseEntity.noContent().build();
+    }
+
+    @GetMapping("/{id}/export/pdf")
+    @PreAuthorize("hasRole('ADMIN') or hasRole('USER')")
+    public ResponseEntity<byte[]> exportPdf(@PathVariable Long id) {
+        byte[] pdf = pdfService.generatePdf(id);
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_PDF);
+        headers.set(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=maintenance-record-" + id + ".pdf");
+        headers.setContentLength(pdf.length);
+        return ResponseEntity.ok().headers(headers).body(pdf);
     }
 }
