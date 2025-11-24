@@ -1,0 +1,101 @@
+{
+  "image": "/tmp/patchcore_api_1j230z5o/1763982181915_T1_faulty_034.jpg",
+  "boxed_image": "/tmp/patchcore_api_1j230z5o/outputs/boxed/1763982181915_T1_faulty_034_boxed.jpg",
+  "mask_image": "/tmp/patchcore_api_1j230z5o/outputs/masks/1763982181915_T1_faulty_034_mask.png",
+  "filtered_image": "/tmp/patchcore_api_1j230z5o/outputs/filtered/1763982181915_T1_faulty_034_filtered.png",
+  "label": "Normal",
+  "boxes": [
+    {
+      "box": [
+        202,
+        274,
+        141,
+        92
+      ],
+      "type": "Point Overload (Potential)",
+      "confidence": 0.649
+    },
+    {
+      "box": [
+        400,
+        293,
+        34,
+        35
+      ],
+      "type": "Point Overload (Faulty)",
+      "confidence": 0.551
+    },
+    {
+      "box": [
+        396,
+        267,
+        38,
+        38
+      ],
+      "type": "Tiny Faulty Spot",
+      "confidence": 0.581
+    },
+    {
+      "box": [
+        362,
+        264,
+        21,
+        34
+      ],
+      "type": "Tiny Potential Spot",
+      "confidence": 0.716
+    }
+  ],
+  "feedback_adjustments": {
+    "applied": true,
+    "global_adjustment": 0.0,
+    "learning_rate": 0.0001,
+    "generated_at": "2025-11-24T16:33:43.088406600",
+    "source": "annotation_feedback",
+    "total_annotations_considered": 0,
+    "label_adjustments": {},
+    "label_feedback": [],
+    "per_box": [
+      {
+        "label": "Point Overload (Potential)",
+        "original_confidence": 0.649,
+        "adjustment": 0.0,
+        "components": {
+          "global": 0.0,
+          "label": 0.0
+        },
+        "adjusted_confidence": 0.649
+      },
+      {
+        "label": "Point Overload (Faulty)",
+        "original_confidence": 0.551,
+        "adjustment": 0.0,
+        "components": {
+          "global": 0.0,
+          "label": 0.0
+        },
+        "adjusted_confidence": 0.551
+      },
+      {
+        "label": "Tiny Faulty Spot",
+        "original_confidence": 0.581,
+        "adjustment": 0.0,
+        "components": {
+          "global": 0.0,
+          "label": 0.0
+        },
+        "adjusted_confidence": 0.581
+      },
+      {
+        "label": "Tiny Potential Spot",
+        "original_confidence": 0.716,
+        "adjustment": 0.0,
+        "components": {
+          "global": 0.0,
+          "label": 0.0
+        },
+        "adjusted_confidence": 0.716
+      }
+    ]
+  }
+}
