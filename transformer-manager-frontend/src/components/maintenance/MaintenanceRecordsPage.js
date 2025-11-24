@@ -3,7 +3,7 @@ import { Card, Row, Col, Spinner, Alert, Button, Badge, Dropdown, InputGroup, Fo
 import { useNavigate } from "react-router-dom";
 import axiosInstance from "../../axiosConfig";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faPlus, faClipboardList, faBolt, faSearch, faEye } from "@fortawesome/free-solid-svg-icons";
+import { faPlus, faClipboardList, faBolt, faSearch, faEye, faTrash } from "@fortawesome/free-solid-svg-icons";
 import { useAuth } from "../../AuthContext";
 
 // Minimal listing & creation page for Maintenance Records
@@ -139,6 +139,16 @@ const MaintenanceRecordsPage = () => {
       setSelectedInspection(null);
     }
   }, [selectedTransformer]);
+
+  const handleDelete = async (recordId) => {
+    if (!window.confirm(`Delete maintenance record #${recordId}? This cannot be undone.`)) return;
+    try {
+      await axiosInstance.delete(`/maintenance-records/${recordId}`);
+      setRecords(records.filter(r => r.id !== recordId));
+    } catch (e) {
+      setError(e.response?.data?.message || "Failed to delete record");
+    }
+  };
 
   return (
     <div className="moodle-container">
@@ -354,9 +364,14 @@ const MaintenanceRecordsPage = () => {
                     <td>{r.current != null ? r.current : '-'}</td>
                     <td>{r.finalized ? <Badge bg="success">Yes</Badge> : <Badge bg="warning">No</Badge>}</td>
                     <td>
-                      <Button size="sm" variant="outline-primary" onClick={() => navigate(`/maintenance-records/${r.id}`)}>
-                        <FontAwesomeIcon icon={faEye} />
-                      </Button>
+                      <div className="d-flex gap-2">
+                        <Button size="sm" variant="outline-primary" onClick={() => navigate(`/maintenance-records/${r.id}`)}>
+                          <FontAwesomeIcon icon={faEye} />
+                        </Button>
+                        <Button size="sm" variant="outline-danger" onClick={() => handleDelete(r.id)}>
+                          <FontAwesomeIcon icon={faTrash} />
+                        </Button>
+                      </div>
                     </td>
                   </tr>
                 ))}

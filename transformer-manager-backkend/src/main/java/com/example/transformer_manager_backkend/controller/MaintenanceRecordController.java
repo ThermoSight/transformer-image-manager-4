@@ -86,4 +86,11 @@ public class MaintenanceRecordController {
     public ResponseEntity<List<MaintenanceRecord>> getRecordsByTransformer(@PathVariable Long transformerRecordId) {
         return ResponseEntity.ok(maintenanceRecordService.getRecordsByTransformer(transformerRecordId));
     }
+
+    @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN') or hasRole('USER')")
+    public ResponseEntity<Void> deleteRecord(@PathVariable Long id) {
+        maintenanceRecordService.deleteRecord(id);
+        return ResponseEntity.noContent().build();
+    }
 }

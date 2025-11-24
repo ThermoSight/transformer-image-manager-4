@@ -201,4 +201,11 @@ public class MaintenanceRecordService {
         }
         return dto;
     }
+
+    @Transactional
+    public void deleteRecord(Long id) {
+        MaintenanceRecord record = maintenanceRecordRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Maintenance record not found"));
+        maintenanceRecordRepository.delete(record);
+    }
 }

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import axiosInstance from "../../axiosConfig";
 import ImageWithOverlay from "./ImageWithOverlay";
 import EngineerFields from "./EngineerFields";
@@ -8,6 +8,7 @@ import { Button, Spinner, Alert, Card, Row, Col } from "react-bootstrap";
 
 const MaintenanceRecordForm = () => {
   const { id } = useParams();
+  const navigate = useNavigate();
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -72,6 +73,16 @@ const MaintenanceRecordForm = () => {
       setError(e.message || "Finalize failed");
     } finally {
       setFinalizing(false);
+    }
+  };
+
+  const deleteRecord = async () => {
+    if (!window.confirm("Delete this maintenance record? This cannot be undone.")) return;
+    try {
+      await axiosInstance.delete(`/maintenance-records/${id}`);
+      navigate('/maintenance-records');
+    } catch (e) {
+      setError(e.message || "Delete failed");
     }
   };
 
@@ -157,6 +168,12 @@ const MaintenanceRecordForm = () => {
                   disabled={disableEdits || finalizing}
                 >
                   {finalizing ? "Finalizing..." : "Finalize"}
+                </Button>
+                <Button
+                  variant="outline-danger"
+                  onClick={deleteRecord}
+                >
+                  Delete
                 </Button>
               </div>
             </Card.Body>
