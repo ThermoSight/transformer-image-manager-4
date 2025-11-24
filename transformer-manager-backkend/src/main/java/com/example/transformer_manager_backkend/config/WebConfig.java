@@ -13,8 +13,12 @@ public class WebConfig implements WebMvcConfigurer {
 
     @Override
     public void addResourceHandlers(ResourceHandlerRegistry registry) {
-        registry.addResourceHandler("/uploads/**")
-                .addResourceLocations("file:" + uploadDir + "/")
-                .setCachePeriod(3600);
+    // Serve uploads from the primary backend folder, and also fall back to
+    // the repository-level ../uploads directory when running locally.
+    registry.addResourceHandler("/uploads/**")
+        .addResourceLocations(
+            "file:" + uploadDir + "/",
+            "file:../uploads/")
+        .setCachePeriod(3600);
     }
 }
