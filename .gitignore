@@ -14,3 +14,5 @@ automatic-anamoly-detection/TX/
 
 # Specifically keep this one file
 !automatic-anamoly-detection/Model_Inference/config/patchcore_transformers.yaml
+
+*.vscode
