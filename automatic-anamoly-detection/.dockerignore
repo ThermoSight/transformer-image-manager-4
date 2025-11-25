@@ -1,0 +1,16 @@
+.git
+.gitignore
+.gitattributes
+.venv
+__pycache__
+*.pyc
+*.pyo
+*.pyd
+*.swp
+*.swo
+.DS_Store
+Model_Inference/outputs
+Model_Inference/output_image
+outputs
+dist
+build
