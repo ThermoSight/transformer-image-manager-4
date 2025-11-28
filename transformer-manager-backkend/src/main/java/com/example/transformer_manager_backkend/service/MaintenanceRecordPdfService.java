@@ -56,6 +56,13 @@ public class MaintenanceRecordPdfService {
     private static final Font SUMMARY_LABEL_FONT;
     private static final Font SUMMARY_VALUE_FONT;
     private static final Font CAPTION_FONT;
+    private static final Font BRAND_TITLE_FONT = FontFactory.getFont(FontFactory.HELVETICA_BOLD, 20);
+    private static final Font BRAND_SUBTITLE_FONT = FontFactory.getFont(FontFactory.HELVETICA, 12);
+    private static final Color BRAND_PRIMARY = new Color(25, 90, 165);
+    private static final Color BRAND_SECONDARY = new Color(52, 152, 219);
+    private static final Color LINE_COLOR = new Color(210, 220, 235);
+    private static final Color IMAGE_FRAME_BG = new Color(245, 248, 252);
+    private static final Color IMAGE_FRAME_BORDER = new Color(210, 220, 235);
     private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
 
     static {
@@ -93,9 +100,10 @@ public class MaintenanceRecordPdfService {
         try (ByteArrayOutputStream baos = new ByteArrayOutputStream()) {
             @SuppressWarnings("resource")
             Document document = new Document(PageSize.A4, 40, 40, 40, 40);
-            PdfWriter.getInstance(document, baos);
+            PdfWriter writer = PdfWriter.getInstance(document, baos);
             document.open();
 
+            addBrandingHeader(document, record);
             addHeader(document, record);
             addSummarySection(document, record);
             addTransformerSection(document, record);
@@ -128,17 +136,40 @@ public class MaintenanceRecordPdfService {
     }
 
     private void addHeader(Document document, MaintenanceRecord record) throws DocumentException {
-        Paragraph title = new Paragraph("Maintenance Record #" + record.getId(), TITLE_FONT);
-        title.setSpacingAfter(8f);
-        document.add(title);
-
-        PdfPTable table = new PdfPTable(2);
+        PdfPTable table = new PdfPTable(new float[] { 1, 1 });
         table.setWidthPercentage(100);
         table.setSpacingAfter(10f);
-        addKeyValueCell(table, "Created At", formatDate(record.getCreatedAt()));
-        addKeyValueCell(table, "Status", safeValue(record.getRecordStatus()));
-        addKeyValueCell(table, "Inspector", safeValue(record.getInspectorName()));
-        addKeyValueCell(table, "Inspection Date", formatDate(Optional.ofNullable(record.getInspection()).map(Inspection::getInspectionDate).orElse(null)));
+
+        PdfPCell titleCell = new PdfPCell();
+        titleCell.setBackgroundColor(new Color(245, 248, 252));
+        titleCell.setPadding(10f);
+        titleCell.setBorderColor(LINE_COLOR);
+        Paragraph title = new Paragraph("Maintenance Record #" + record.getId(), TITLE_FONT);
+        title.setSpacingAfter(4f);
+        Paragraph subtitle = new Paragraph("ThermoSight Transformer Management System", BRAND_SUBTITLE_FONT);
+        subtitle.setSpacingAfter(2f);
+        titleCell.addElement(title);
+        titleCell.addElement(subtitle);
+        table.addCell(titleCell);
+
+        PdfPCell metaCell = new PdfPCell();
+        metaCell.setPadding(10f);
+        metaCell.setBorderColor(LINE_COLOR);
+        Paragraph created = new Paragraph("Created: " + formatDate(record.getCreatedAt()), CELL_FONT);
+        created.setSpacingAfter(3f);
+        Paragraph status = new Paragraph("Status: " + safeValue(record.getRecordStatus()), CELL_FONT);
+        status.setSpacingAfter(3f);
+        Paragraph inspector = new Paragraph("Inspector: " + safeValue(record.getInspectorName()), CELL_FONT);
+        inspector.setSpacingAfter(3f);
+        Paragraph inspectionDate = new Paragraph(
+                "Inspection Date: " + formatDate(Optional.ofNullable(record.getInspection()).map(Inspection::getInspectionDate).orElse(null)),
+                CELL_FONT);
+        metaCell.addElement(created);
+        metaCell.addElement(status);
+        metaCell.addElement(inspector);
+        metaCell.addElement(inspectionDate);
+        table.addCell(metaCell);
+
         document.add(table);
     }
 
@@ -147,8 +178,8 @@ public class MaintenanceRecordPdfService {
         table.setWidthPercentage(100);
         table.setSpacingAfter(12f);
 
-        table.addCell(createSummaryCell("Record Status", safeValue(record.getRecordStatus()), new Color(32, 76, 136)));
-        table.addCell(createSummaryCell("Priority", safeValue(record.getMaintenancePriority()), new Color(48, 121, 96)));
+        table.addCell(createSummaryCell("Record Status", safeValue(record.getRecordStatus()), BRAND_PRIMARY));
+        table.addCell(createSummaryCell("Priority", safeValue(record.getMaintenancePriority()), BRAND_SECONDARY));
 
         String followUp = Boolean.TRUE.equals(record.getRequiresFollowUp())
                 ? formatDate(record.getFollowUpDate())
@@ -202,6 +233,39 @@ public class MaintenanceRecordPdfService {
         addParagraph(document, "Recommended Action", record.getRecommendedAction());
         addParagraph(document, "Engineer Notes", record.getEngineerNotes());
         addParagraph(document, "Additional Remarks", record.getAdditionalRemarks());
+    }
+
+    private void addBrandingHeader(Document document, MaintenanceRecord record) throws DocumentException {
+        PdfPTable banner = new PdfPTable(new float[] { 3, 1 });
+        banner.setWidthPercentage(100);
+        banner.setSpacingAfter(10f);
+
+        PdfPCell left = new PdfPCell();
+        left.setPadding(12f);
+        left.setBorderColor(LINE_COLOR);
+        left.setBackgroundColor(new Color(241, 246, 252));
+        Paragraph brand = new Paragraph("ThermoSight Transformer Management System", BRAND_TITLE_FONT);
+        brand.setSpacingAfter(4f);
+        Paragraph tagline = new Paragraph("Maintenance & Analysis Report", BRAND_SUBTITLE_FONT);
+        left.addElement(brand);
+        left.addElement(tagline);
+        banner.addCell(left);
+
+        PdfPCell right = new PdfPCell();
+        right.setPadding(12f);
+        right.setHorizontalAlignment(Rectangle.ALIGN_RIGHT);
+        right.setVerticalAlignment(Rectangle.ALIGN_MIDDLE);
+        right.setBorderColor(LINE_COLOR);
+        right.setBackgroundColor(new Color(250, 252, 255));
+        Paragraph recordTag = new Paragraph("Record #" + record.getId(), TITLE_FONT);
+        recordTag.setAlignment(Rectangle.ALIGN_RIGHT);
+        Paragraph dateTag = new Paragraph("Generated: " + formatDate(java.time.LocalDateTime.now()), CELL_FONT);
+        dateTag.setAlignment(Rectangle.ALIGN_RIGHT);
+        right.addElement(recordTag);
+        right.addElement(dateTag);
+        banner.addCell(right);
+
+        document.add(banner);
     }
 
     private Map<Long, String> buildMaintenanceLabelMap(List<Image> maintenanceImages) {
@@ -300,7 +364,6 @@ public class MaintenanceRecordPdfService {
                                 : "No comments"));
 
                 List<AnnotationBox> boxes = annotation.getAnnotationBoxes();
-                String boxSummary = summarizeChangedBoxes(boxes);
                 table.addCell(createBoxListCell(boxes));
                 table.addCell(createBodyCell(
                         formatDate(annotation.getUpdatedAt() != null ? annotation.getUpdatedAt() : annotation.getCreatedAt())));
@@ -382,8 +445,10 @@ public class MaintenanceRecordPdfService {
 
     private PdfPCell createHeaderCell(String value) {
         PdfPCell cell = new PdfPCell(new Phrase(safeValue(value), CELL_HEADER_FONT));
-        cell.setBackgroundColor(new Color(240, 240, 240));
+        cell.setBackgroundColor(new Color(240, 245, 252));
         cell.setPadding(6f);
+        cell.setBorderColor(LINE_COLOR);
+        cell.setBorderWidthBottom(1f);
         return cell;
     }
 
@@ -418,7 +483,9 @@ public class MaintenanceRecordPdfService {
 
     private PdfPCell createImageCell(Path path, String captionText) {
         PdfPCell cell = new PdfPCell();
-        cell.setBorder(Rectangle.NO_BORDER);
+        cell.setBorder(Rectangle.BOX);
+        cell.setBorderColor(IMAGE_FRAME_BORDER);
+        cell.setBackgroundColor(IMAGE_FRAME_BG);
         cell.setPadding(8f);
 
         try {
@@ -440,9 +507,11 @@ public class MaintenanceRecordPdfService {
     }
 
     private Paragraph makeSectionHeader(String text) {
-        Paragraph section = new Paragraph(text, SECTION_FONT);
-        section.setSpacingBefore(10f);
-        section.setSpacingAfter(4f);
+        Font coloredSectionFont = new Font(SECTION_FONT);
+        coloredSectionFont.setColor(BRAND_PRIMARY);
+        Paragraph section = new Paragraph(text, coloredSectionFont);
+        section.setSpacingBefore(12f);
+        section.setSpacingAfter(6f);
         return section;
     }
 
