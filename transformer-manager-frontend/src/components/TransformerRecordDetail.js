@@ -27,6 +27,7 @@ import {
   faPlus,
 } from "@fortawesome/free-solid-svg-icons";
 import ImageViewer from "./ImageViewer";
+import MaintenanceRecordsHistory from "./MaintenanceRecordsHistory";
 import { useParams, useNavigate } from "react-router-dom";
 import { useAuth } from "../AuthContext";
 import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
@@ -387,6 +388,17 @@ const TransformerRecordDetail = () => {
               ) : (
                 <Alert variant="info" className="mt-3">
                   No inspections for this transformer yet
+                </Alert>
+              )}
+            </Tab>
+            <Tab eventKey="maintenanceHistory" title="Maintenance History">
+              {transformerRecord?.id ? (
+                <div className="mt-3">
+                  <MaintenanceRecordsHistory transformerId={transformerRecord.id} />
+                </div>
+              ) : (
+                <Alert variant="info" className="mt-3">
+                  Transformer ID not available to load maintenance history.
                 </Alert>
               )}
             </Tab>
