@@ -1,7 +1,6 @@
 # Ignore all .jpg and .png files
 *.jpg
 *.png
-*.json
 
 # Allow .jpg and .png files in the ./uploads directory and its subdirectories
 !uploads/**/*.jpg
