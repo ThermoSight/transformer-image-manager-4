@@ -23,7 +23,7 @@ import {
 } from "@fortawesome/free-solid-svg-icons";
 import { useAuth } from "../AuthContext";
 
-const MaintenanceRecordsHistory = ({ transformerId }) => {
+const MaintenanceRecordsHistory = ({ transformerId, refreshToken = 0 }) => {
   const { token } = useAuth();
   const [records, setRecords] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -35,10 +35,15 @@ const MaintenanceRecordsHistory = ({ transformerId }) => {
 
   useEffect(() => {
     fetchRecords();
-  }, [transformerId]);
+  }, [transformerId, refreshToken]);
 
   const fetchRecords = async () => {
     try {
+      if (!transformerId) {
+        setRecords([]);
+        setLoading(false);
+        return;
+      }
       setLoading(true);
       const response = await axios.get(
         `http://localhost:8080/api/maintenance-records/transformer/${transformerId}`,

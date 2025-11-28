@@ -11,6 +11,8 @@ import {
   Tabs,
   Tab,
   Badge,
+  Toast,
+  ToastContainer,
 } from "react-bootstrap";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
@@ -21,12 +23,18 @@ import {
 } from "@fortawesome/free-solid-svg-icons";
 import { useAuth } from "../AuthContext";
 
-const MaintenanceRecordForm = ({ inspectionId, inspection }) => {
+const MaintenanceRecordForm = ({
+  inspectionId,
+  inspection,
+  onRecordSaved = () => {},
+}) => {
   const { token } = useAuth();
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
+  const [toastMessage, setToastMessage] = useState("");
+  const [showToast, setShowToast] = useState(false);
   const [activeTab, setActiveTab] = useState("inspector");
   const [recordMetadata, setRecordMetadata] = useState({
     createdAt: null,
@@ -102,9 +110,14 @@ const MaintenanceRecordForm = ({ inspectionId, inspection }) => {
     fetchMaintenanceRecord();
   }, [inspectionId]);
 
-  const fetchMaintenanceRecord = async () => {
+  const fetchMaintenanceRecord = async (silent = false) => {
+    if (!inspectionId) {
+      return;
+    }
     try {
-      setLoading(true);
+      if (!silent) {
+        setLoading(true);
+      }
       const response = await axios.get(
         `http://localhost:8080/api/maintenance-records/inspection/${inspectionId}`,
         {
@@ -179,7 +192,9 @@ const MaintenanceRecordForm = ({ inspectionId, inspection }) => {
         console.error("Error fetching maintenance record:", err);
       }
     } finally {
-      setLoading(false);
+      if (!silent) {
+        setLoading(false);
+      }
     }
   };
 
@@ -202,7 +217,7 @@ const MaintenanceRecordForm = ({ inspectionId, inspection }) => {
         recordStatus: submit ? "SUBMITTED" : "DRAFT",
       };
 
-      await axios.post(
+      const response = await axios.post(
         `http://localhost:8080/api/maintenance-records/inspection/${inspectionId}`,
         dataToSend,
         {
@@ -214,11 +229,48 @@ const MaintenanceRecordForm = ({ inspectionId, inspection }) => {
         }
       );
 
-      setSuccess(
+      const savedRecord = response?.data;
+      const successMessage = submit
+        ? "Maintenance record submitted successfully!"
+        : "Maintenance record saved as draft!";
+
+      setSuccess(successMessage);
+      setToastMessage(
         submit
-          ? "Maintenance record submitted successfully!"
-          : "Maintenance record saved as draft!"
+          ? "Maintenance record submitted. Refreshing history..."
+          : "Draft saved. Refreshing record details..."
       );
+      setShowToast(true);
+
+      setFormData((prev) => ({
+        ...prev,
+        recordStatus: savedRecord?.recordStatus || dataToSend.recordStatus,
+      }));
+
+      if (savedRecord) {
+        if (savedRecord.recordStatus) {
+          setRecordMetadata({
+            createdAt: savedRecord.createdAt,
+            updatedAt: savedRecord.updatedAt,
+            id: savedRecord.id,
+          });
+        } else {
+          setRecordMetadata((prev) => ({
+            ...prev,
+            updatedAt: savedRecord.updatedAt || prev.updatedAt,
+            createdAt: savedRecord.createdAt || prev.createdAt,
+            id: savedRecord.id || prev.id,
+          }));
+        }
+      } else {
+        setRecordMetadata((prev) => ({
+          ...prev,
+          updatedAt: new Date().toISOString(),
+        }));
+      }
+
+      onRecordSaved(savedRecord || null);
+      await fetchMaintenanceRecord(true);
       setTimeout(() => setSuccess(""), 3000);
     } catch (err) {
       setError(
@@ -239,42 +291,43 @@ const MaintenanceRecordForm = ({ inspectionId, inspection }) => {
   }
 
   return (
-    <Card className="mb-4">
-      <Card.Header className="bg-primary text-white">
-        <h4 className="mb-0">
-          <FontAwesomeIcon icon={faInfoCircle} className="me-2" />
-          Maintenance Record Form
-        </h4>
-      </Card.Header>
-      <Card.Body>
-        {error && (
-          <Alert variant="danger" dismissible onClose={() => setError("")}>
-            {error}
-          </Alert>
-        )}
-        {success && (
-          <Alert variant="success" dismissible onClose={() => setSuccess("")}>
-            {success}
-          </Alert>
-        )}
+    <>
+      <Card className="mb-4">
+        <Card.Header className="bg-primary text-white">
+          <h4 className="mb-0">
+            <FontAwesomeIcon icon={faInfoCircle} className="me-2" />
+            Maintenance Record Form
+          </h4>
+        </Card.Header>
+        <Card.Body>
+          {error && (
+            <Alert variant="danger" dismissible onClose={() => setError("")}>
+              {error}
+            </Alert>
+          )}
+          {success && (
+            <Alert variant="success" dismissible onClose={() => setSuccess("")}>
+              {success}
+            </Alert>
+          )}
 
-        {/* Last Updated Badge */}
-        {recordMetadata.updatedAt && (
-          <Alert variant="info" className="d-flex justify-content-between align-items-center">
-            <div>
-              <strong>Maintenance Record Status:</strong>{" "}
-              <Badge bg={formData.recordStatus === "SUBMITTED" ? "primary" : formData.recordStatus === "APPROVED" ? "success" : "secondary"}>
-                {formData.recordStatus}
-              </Badge>
-            </div>
-            <div className="text-muted">
-              <small>
-                <strong>Last Updated:</strong>{" "}
-                {new Date(recordMetadata.updatedAt).toLocaleString()}
-              </small>
-            </div>
-          </Alert>
-        )}
+          {/* Last Updated Badge */}
+          {recordMetadata.updatedAt && (
+            <Alert variant="info" className="d-flex justify-content-between align-items-center">
+              <div>
+                <strong>Maintenance Record Status:</strong>{" "}
+                <Badge bg={formData.recordStatus === "SUBMITTED" ? "primary" : formData.recordStatus === "APPROVED" ? "success" : "secondary"}>
+                  {formData.recordStatus}
+                </Badge>
+              </div>
+              <div className="text-muted">
+                <small>
+                  <strong>Last Updated:</strong>{" "}
+                  {new Date(recordMetadata.updatedAt).toLocaleString()}
+                </small>
+              </div>
+            </Alert>
+          )}
 
         {/* Transformer Metadata (Read-only) */}
         <Card className="mb-3 bg-light">
@@ -956,6 +1009,20 @@ const MaintenanceRecordForm = ({ inspectionId, inspection }) => {
         </div>
       </Card.Body>
     </Card>
+    <ToastContainer position="bottom-end" className="p-3">
+      <Toast
+        show={showToast}
+        bg="dark"
+        onClose={() => setShowToast(false)}
+        delay={3500}
+        autohide
+      >
+        <Toast.Body className="text-white">
+          {toastMessage || success}
+        </Toast.Body>
+      </Toast>
+    </ToastContainer>
+    </>
   );
 };
 

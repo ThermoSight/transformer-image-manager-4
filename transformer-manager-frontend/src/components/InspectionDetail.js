@@ -46,6 +46,9 @@ const InspectionDetail = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [activeTab, setActiveTab] = useState("images");
+  const [historyRefreshToken, setHistoryRefreshToken] = useState(0);
+  const [maintenanceImageRefreshToken, setMaintenanceImageRefreshToken] =
+    useState(Date.now());
 
   // Image upload states
   const [showImageUpload, setShowImageUpload] = useState(false);
@@ -64,56 +67,63 @@ const InspectionDetail = () => {
   const [deletingImageId, setDeletingImageId] = useState(null);
   const [deleteError, setDeleteError] = useState("");
 
-  useEffect(() => {
-    const fetchInspection = async () => {
-      try {
+  const fetchInspection = async (silent = false) => {
+    try {
+      if (!silent) {
         setLoading(true);
+      }
 
-        // Check if user is authenticated
-        if (!isAuthenticated || !token) {
-          setError(
-            "Authentication required. Please log in to view inspection details."
-          );
-          return;
+      if (!isAuthenticated || !token) {
+        setError(
+          "Authentication required. Please log in to view inspection details."
+        );
+        if (!silent) {
+          setLoading(false);
         }
+        return;
+      }
 
-        const config = {
-          headers: { Authorization: `Bearer ${token}` },
-          withCredentials: true,
-        };
+      const config = {
+        headers: { Authorization: `Bearer ${token}` },
+        withCredentials: true,
+      };
 
-        const response = await axios.get(
-          `http://localhost:8080/api/inspections/${id}`,
+      const response = await axios.get(
+        `http://localhost:8080/api/inspections/${id}`,
+        config
+      );
+      setInspection(response.data);
+
+      // Fetch transformer record separately to get all images (same as TransformerRecordDetail)
+      if (response.data.transformerRecord?.id) {
+        const transformerResponse = await axios.get(
+          `http://localhost:8080/api/transformer-records/${response.data.transformerRecord.id}`,
           config
         );
-        setInspection(response.data);
+        setTransformerRecord(transformerResponse.data);
+      }
 
-        // Fetch transformer record separately to get all images (same as TransformerRecordDetail)
-        if (response.data.transformerRecord?.id) {
-          const transformerResponse = await axios.get(
-            `http://localhost:8080/api/transformer-records/${response.data.transformerRecord.id}`,
-            config
-          );
-          setTransformerRecord(transformerResponse.data);
-        }
-
-        setError("");
-      } catch (err) {
-        if (err.response?.status === 403) {
-          setError(
-            "Access denied. You don't have permission to view this inspection."
-          );
-        } else if (err.response?.status === 401) {
-          setError("Authentication expired. Please log in again.");
-        } else {
-          setError("Failed to fetch inspection details");
-        }
-      } finally {
+      setError("");
+    } catch (err) {
+      if (err.response?.status === 403) {
+        setError(
+          "Access denied. You don't have permission to view this inspection."
+        );
+      } else if (err.response?.status === 401) {
+        setError("Authentication expired. Please log in again.");
+      } else {
+        setError("Failed to fetch inspection details");
+      }
+    } finally {
+      if (!silent) {
         setLoading(false);
       }
-    };
+    }
+  };
 
+  useEffect(() => {
     fetchInspection();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id, token, isAuthenticated]);
 
   // Debug: Log auth and inspection data
@@ -132,6 +142,12 @@ const InspectionDetail = () => {
 
   // Get maintenance images from this inspection
   const maintenanceImages = inspection?.images || [];
+
+  const buildMaintenanceImageSrc = (path) => {
+    if (!path) return "";
+    const separator = path.includes("?") ? "&" : "?";
+    return `http://localhost:8080${path}${separator}cb=${maintenanceImageRefreshToken}`;
+  };
 
   // Check if current user can delete images from this inspection
   const canDeleteImages = () => {
@@ -190,6 +206,15 @@ const InspectionDetail = () => {
     // For testing, allow all authenticated users to delete
     // console.log("TEST MODE: Allowing delete for all authenticated users");
     return isAuthenticated;
+  };
+
+  const handleAnalysisCompleted = () => {
+    setMaintenanceImageRefreshToken(Date.now());
+    fetchInspection(true);
+  };
+
+  const handleMaintenanceRecordSaved = () => {
+    setHistoryRefreshToken(Date.now());
   };
 
   // Image viewer handlers
@@ -523,7 +548,7 @@ const InspectionDetail = () => {
                       <Card className="h-100">
                         <div style={{ position: "relative" }}>
                           <Image
-                            src={`http://localhost:8080${image.filePath}`}
+                            src={buildMaintenanceImageSrc(image.filePath)}
                             alt={image.type}
                             fluid
                             style={{
@@ -726,6 +751,7 @@ const InspectionDetail = () => {
               <AnalysisDisplay
                 inspectionId={inspection.id}
                 images={maintenanceImages}
+                onAnalysisCompleted={handleAnalysisCompleted}
               />
             </Tab>
 
@@ -742,6 +768,7 @@ const InspectionDetail = () => {
               <MaintenanceRecordForm
                 inspectionId={inspection.id}
                 inspection={inspection}
+                onRecordSaved={handleMaintenanceRecordSaved}
               />
             </Tab>
 
@@ -754,13 +781,14 @@ const InspectionDetail = () => {
                   Maintenance History
                 </>
               }
-            >
-              {transformerRecord?.id ? (
-                <MaintenanceRecordsHistory
-                  transformerId={transformerRecord.id}
-                />
-              ) : (
-                <Alert variant="info">
+              >
+                {transformerRecord?.id ? (
+                  <MaintenanceRecordsHistory
+                    transformerId={transformerRecord.id}
+                    refreshToken={historyRefreshToken}
+                  />
+                ) : (
+                  <Alert variant="info">
                   <FontAwesomeIcon
                     icon={faExclamationTriangle}
                     className="me-2"

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import axios from "axios";
 import {
   Card,
@@ -31,7 +31,11 @@ import {
 import { useAuth } from "../AuthContext";
 import InteractiveAnnotationEditor from "./InteractiveAnnotationEditor";
 
-const AnalysisDisplay = ({ inspectionId, images }) => {
+const AnalysisDisplay = ({
+  inspectionId,
+  images,
+  onAnalysisCompleted = () => {},
+}) => {
   const [analysisJobs, setAnalysisJobs] = useState([]);
   const [loading, setLoading] = useState(false);
   const [queueStatus, setQueueStatus] = useState(null);
@@ -46,6 +50,7 @@ const AnalysisDisplay = ({ inspectionId, images }) => {
   const [selectedJobForAnnotation, setSelectedJobForAnnotation] =
     useState(null);
   const [imageRefreshToken, setImageRefreshToken] = useState(Date.now());
+  const previousJobStatusRef = useRef({});
 
   const { token, isAuthenticated } = useAuth();
   const selectedFeedback = selectedJson?.feedback_adjustments;
@@ -64,7 +69,7 @@ const AnalysisDisplay = ({ inspectionId, images }) => {
 
       // Set up polling for updates
       const interval = setInterval(() => {
-        fetchAnalysisJobs();
+        fetchAnalysisJobs({ silent: true });
         fetchQueueStatus();
       }, 5000); // Poll every 5 seconds
 
@@ -72,18 +77,44 @@ const AnalysisDisplay = ({ inspectionId, images }) => {
     }
   }, [inspectionId, token]);
 
-  const fetchAnalysisJobs = async () => {
+  const fetchAnalysisJobs = async ({ silent = false } = {}) => {
     try {
-      setLoading(true);
+      if (!silent) {
+        setLoading(true);
+      }
       const response = await axios.get(
         `http://localhost:8080/api/analysis/inspection/${inspectionId}`,
         isAuthenticated ? { headers: { Authorization: `Bearer ${token}` } } : {}
       );
-      setAnalysisJobs(response.data);
+      const jobs = response.data || [];
+      setAnalysisJobs(jobs);
+
+      const nextStatuses = {};
+      let hasNewCompletions = false;
+      jobs.forEach((job) => {
+        if (!job?.image?.id) {
+          return;
+        }
+        nextStatuses[job.image.id] = job.status;
+        if (
+          job.status === "COMPLETED" &&
+          previousJobStatusRef.current[job.image.id] !== "COMPLETED"
+        ) {
+          hasNewCompletions = true;
+        }
+      });
+
+      if (hasNewCompletions) {
+        setImageRefreshToken(Date.now());
+        onAnalysisCompleted();
+      }
+      previousJobStatusRef.current = nextStatuses;
     } catch (err) {
       console.error("Failed to fetch analysis jobs", err);
     } finally {
-      setLoading(false);
+      if (!silent) {
+        setLoading(false);
+      }
     }
   };
 
@@ -108,7 +139,7 @@ const AnalysisDisplay = ({ inspectionId, images }) => {
       );
       setToastMessage("Image queued for analysis");
       setShowToast(true);
-      fetchAnalysisJobs();
+      fetchAnalysisJobs({ silent: true });
       fetchQueueStatus();
     } catch (err) {
       setToastMessage("Failed to queue image for analysis");
@@ -238,12 +269,12 @@ const AnalysisDisplay = ({ inspectionId, images }) => {
     setShowAnnotationEditor(false);
     setSelectedJobForAnnotation(null);
     // Refresh analysis jobs to show any updates
-    fetchAnalysisJobs();
+    fetchAnalysisJobs({ silent: true });
   };
 
   const handleAnnotationSaved = () => {
     setImageRefreshToken(Date.now());
-    fetchAnalysisJobs();
+    fetchAnalysisJobs({ silent: true });
   };
 
   const closeJsonModal = () => {
@@ -293,7 +324,10 @@ const AnalysisDisplay = ({ inspectionId, images }) => {
             <Button
               variant="outline-secondary"
               size="sm"
-              onClick={fetchAnalysisJobs}
+              onClick={() => {
+                fetchAnalysisJobs();
+                fetchQueueStatus();
+              }}
             >
               <FontAwesomeIcon icon={faRefresh} />
             </Button>
@@ -332,14 +366,40 @@ const AnalysisDisplay = ({ inspectionId, images }) => {
                 ? Math.max(0, feedbackAdjustments.per_box.length - perBoxFeedback.length)
                 : 0;
               const hasFeedback = feedbackAdjustments?.applied;
+              const displayImageSrc =
+                job &&
+                job.status === "COMPLETED" &&
+                job.boxedImagePath
+                  ? buildImageSrc(job.boxedImagePath)
+                  : buildImageSrc(image.filePath);
               return (
                 <Col md={6} lg={4} key={image.id} className="mb-4">
                   <Card className="h-100">
-                    <Card.Img
-                      variant="top"
-                      src={buildImageSrc(image.filePath)}
-                      style={{ height: "200px", objectFit: "cover" }}
-                    />
+                    <div style={{ position: "relative" }}>
+                      <Card.Img
+                        variant="top"
+                        src={displayImageSrc}
+                        style={{ height: "200px", objectFit: "cover" }}
+                      />
+                      {job?.status === "PROCESSING" && (
+                        <div
+                          style={{
+                            position: "absolute",
+                            inset: 0,
+                            background: "rgba(0, 0, 0, 0.4)",
+                            color: "white",
+                            display: "flex",
+                            flexDirection: "column",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            fontSize: "0.9rem",
+                          }}
+                        >
+                          <Spinner animation="border" size="sm" />
+                          <span className="mt-2">Processing...</span>
+                        </div>
+                      )}
+                    </div>
                     <Card.Body>
                       <div className="d-flex justify-content-between align-items-center mb-2">
                         <h6 className="mb-0">Image #{image.id}</h6>
