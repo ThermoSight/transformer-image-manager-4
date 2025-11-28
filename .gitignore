@@ -1,10 +1,11 @@
 # Ignore all .jpg and .png files
 *.jpg
 *.png
+*.json
 
 # Allow .jpg and .png files in the ./uploads directory and its subdirectories
-!uploads/**/*.jpg
-!uploads/**/*.png
+# !uploads/**/*.jpg
+# !uploads/**/*.png
 
 # Ignore other specific directories and files
 automatic-anamoly-detection/TX/
