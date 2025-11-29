@@ -1,4 +1,4 @@
-# ThermoSight - Transformer Management System
+# ThermoSight - hiii
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Java](https://img.shields.io/badge/Java-17-orange.svg)](https://www.oracle.com/java/)
