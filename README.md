@@ -1396,18 +1396,10 @@ Authorization: Bearer {jwt_token}
 <summary><strong>Current System Limitations</strong></summary>
 
 **Performance Constraints:**
-- 🔄 **Sequential ML Processing**: One image analyzed at a time
-- 💾 **Memory Usage**: Peak usage during large image processing
+- 🔄 **Local running**: Both Frontend and Backend run locally
 - 🗄️ **Database Connections**: Limited by free tier constraints
-- 📁 **File Storage**: Local filesystem dependency
 - 🌐 **Network Latency**: Direct database connections required
-
-**Feature Limitations:**
-- 🤖 **Model Updates**: Manual model weight replacement
-- 📊 **Analytics**: Basic metrics without advanced dashboards
-- 👥 **Multi-tenancy**: Single organization support only
-- 🔄 **Real-time Collaboration**: No simultaneous annotation editing
-- 📱 **Mobile Optimization**: Desktop-first design
+- 🗄️ **Local Storage**: Images and json files are stored locally
 
 </details>
 
@@ -1416,40 +1408,7 @@ Authorization: Bearer {jwt_token}
 <details>
 <summary><strong>Planned Improvements (2025-2026)</strong></summary>
 
-#### Q4 2025 - Foundation Improvements
 - [ ] **Docker Containerization**: Complete application containerization
-- [ ] **Setup Automation**: One-click installation scripts
-- [ ] **Documentation**: Comprehensive user and developer guides
-- [ ] **Testing Suite**: Automated integration and unit tests
-- [ ] **CI/CD Pipeline**: GitHub Actions workflow implementation
-
-#### Q1 2026 - Cloud Migration
-- [ ] **Cloud Deployment**: AWS/Azure production deployment
-- [ ] **Cloud Storage**: S3/Azure Blob Storage integration
-- [ ] **Database Migration**: Managed PostgreSQL service
-- [ ] **CDN Integration**: Static asset optimization
-- [ ] **SSL Certificates**: Automated certificate management
-
-#### Q2 2026 - Scalability & Performance
-- [ ] **Distributed ML Processing**: Kubernetes-based ML cluster
-- [ ] **GPU Acceleration**: CUDA/OpenCL model inference
-- [ ] **Caching Layer**: Redis implementation for performance
-- [ ] **Load Balancing**: Multi-instance deployment support
-- [ ] **Database Optimization**: Query optimization and indexing
-
-#### Q3 2026 - Advanced Features
-- [ ] **Real-time Collaboration**: Simultaneous annotation editing
-- [ ] **Advanced Analytics**: Comprehensive reporting dashboard
-- [ ] **Mobile Application**: Native iOS/Android apps
-- [ ] **API Rate Limiting**: Enhanced security and fair usage
-- [ ] **Multi-tenancy**: Organization-based isolation
-
-#### Q4 2026 - AI/ML Enhancements
-- [ ] **Model Versioning**: MLOps pipeline with A/B testing
-- [ ] **Auto-ML Pipeline**: Automated model retraining
-- [ ] **Custom Model Training**: User-specific model fine-tuning
-- [ ] **Federated Learning**: Privacy-preserving model updates
-- [ ] **Explainable AI**: Model decision transparency
 
 </details>
 
