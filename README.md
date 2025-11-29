@@ -1573,20 +1573,6 @@ Authorization: Bearer {jwt_token}
 
 ---
 
-## 📄 License & Legal
-
-### 📜 MIT License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
-**Key Points:**
-- ✅ **Commercial Use**: Permitted for commercial applications
-- ✅ **Modification**: Allowed to modify and distribute
-- ✅ **Distribution**: Can redistribute with proper attribution
-- ✅ **Private Use**: Permitted for private/internal use
-- ❌ **Liability**: No warranty or liability provided
-- ❌ **Trademark**: Trademark rights not granted
-
 ### 🔒 Data Privacy & Security
 
 **Privacy Commitment:**
