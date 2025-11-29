@@ -1,6 +1,138 @@
 # ThermoSight - Transformer Management System
+[![Java](https://img.shields.io/badge/Java-17-orange.svg)](https://www.oracle.com/java/)
+[![React](https://img.shields.io/badge/React-19.1.1-blue.svg)](https://reactjs.org/)
+[![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.5.4-green.svg)](https://spring.io/projects/spring-boot)
+[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-15+-blue.svg)](https://www.postgresql.org/)
+[![Python](https://img.shields.io/badge/Python-3.8+-yellow.svg)](https://www.python.org/)
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+
+# Setup Instructions
+
+## Prerequisites
+
+### 1. Install Java (if not already installed)
+- *Required:* Java 17 or higher
+- *Download from:* https://adoptium.net/
+- Choose the latest LTS version (Java 21 recommended)
+
+### 2. Install Node.js (if not already installed)
+- *Required:* Node.js 14 or higher
+- *Download from:* https://nodejs.org/
+
+### 3. Install Python (for ML Model - Optional)
+- *Required:* Python 3.8 or higher
+- *Download from:* https://www.python.org/
+- *Note:* The ML model is hosted on Hugging Face Space, but local setup is available
+
+## Setup Steps
+
+### Step 1: Clone the Repository
+```bash
+git clone https://github.com/ThermoSight/transformer-image-manager-4.git
+cd transformer-image-manager-4
+```
+
+### Step 2: Find Your Java Installation Path
+Run this command to locate Java:
+```powershell
+where.exe java
+```
+
+You'll see output like: C:\Program Files\Eclipse Adoptium\jdk-21.0.8.9-hotspot\bin\java.exe
+
+- *Your JAVA_HOME path* is everything except \bin\java.exe. For example:
+```bash
+C:\Program Files\Eclipse Adoptium\jdk-21.0.8.9-hotspot
+```
+
+### Step 3: Run the Backend
+- Replace <YOUR_JDK_PATH> with the path from Step 2:
+
+*PowerShell:*
+```
+$env:JAVA_HOME = '<YOUR_JDK_PATH>'; cd transformer-manager-backkend; .\mvnw.cmd spring-boot:run
+```
+
+*Example:*
+
+$env:JAVA_HOME = 'C:\Program Files\Eclipse Adoptium\jdk-21.0.8.9-hotspot'; cd transformer-manager-backkend; .\mvnw.cmd spring-boot:run
+
+
+- The backend will start on *http://localhost:8080*
+
+### Step 4: Run the Frontend
+- Open a *new terminal* and run:
+```bash
+cd transformer-manager-frontend
+npm install
+npm start
+```
+
+- The frontend will start on *http://localhost:3000*
+
+### Step 5: ML Model Setup (Optional - for local inference)
+
+**Option 1: Use Hosted Model (Recommended)**
+- The PatchCore anomaly detection model is hosted at: https://huggingface.co/spaces/Lasidu/automatic-anamoly-detection
+- No local setup required - the backend automatically uses the hosted API
+- Supports real-time thermal image analysis with confidence scoring
+
+**Option 2: Local ML Setup**
+```bash
+cd automatic-anamoly-detection
+python -m venv .venv
+# Windows: .venv\Scripts\activate
+# Linux/WSL: source .venv/bin/activate
+pip install -r requirements.txt
+python app.py
+```
+- Local model runs on port 7860
+- Update backend configuration to use `http://localhost:7860` instead of Hugging Face Space
+
+**Special note:** The application uses hosted services by default — the production database is hosted on Neon (managed/serverless PostgreSQL), so there is no need to run a local database for general usage. Similarly, the PatchCore ML model is available on Hugging Face Spaces (hosted). Local database or ML setup is optional and intended for offline development or advanced testing; if you choose local services, follow the "Option B: Local PostgreSQL" and "Option 2: Local ML Setup" steps above.
+
+
+
+## Default Login Credentials
+
+*Admin Account:*
+- Username: admin1
+- Password: admin1pass
+
+*User Account:*
+- Username: user1
+- Password: user1pass
+
+## Troubleshooting
+
+*"JAVA_HOME is not defined correctly" error:*
+- Make sure you replaced <YOUR_JDK_PATH> with your actual Java path
+- Ensure the path doesn't include \bin\java.exe
+- Restart your terminal after setting JAVA_HOME
+
+*Backend won't start:*
+- Verify Java version: java -version (must be 17+)
+- Check if port 8080 is already in use
+
+*Frontend won't start:*
+- Verify Node.js is installed: node -v
+- Delete node_modules and run npm install again
+
+*Images not loading in the website:*
+- If images do not appear when running the site, confirm you started the backend from the correct folder (the `transformer-manager-backkend` directory) and used the backend start command shown above. In PowerShell you can run:
+
+```powershell
+$env:JAVA_HOME = '<YOUR_JDK_PATH>'; cd transformer-manager-backkend; .\mvnw.cmd spring-boot:run
+```
+
+Also check that the `uploads/` folder exists and contains the expected files, and verify the frontend is configured to point to the correct backend URL (default `http://localhost:8080`). Restart the backend after correcting paths.
+
+*ML Model issues:*
+- Check Hugging Face Space status at: https://huggingface.co/spaces/Lasidu/automatic-anamoly-detection
+- For local setup: Ensure Python 3.8+ and all dependencies are installed
+- Verify model weights are available in `Model_Inference/model_weights/`
+
+
 [![Java](https://img.shields.io/badge/Java-17-orange.svg)](https://www.oracle.com/java/)
 [![React](https://img.shields.io/badge/React-19.1.1-blue.svg)](https://reactjs.org/)
 [![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.5.4-green.svg)](https://spring.io/projects/spring-boot)
@@ -22,22 +154,6 @@ A comprehensive transformer inspection and anomaly detection system that combine
 - 🗺️ **Geographic Mapping**: Transformer location tracking with Leaflet integration
 - 🔐 **Enterprise Security**: JWT authentication with role-based access control
 - 📱 **Responsive Design**: Bootstrap-powered interface for all devices
-
----
-
-## 📸 System Screenshots
-
-### Main Dashboard
-![Dashboard Overview](docs/images/dashboard-overview.png)
-*Real-time monitoring of transformer inspections and analysis queue*
-
-### Interactive Annotation Editor
-![Annotation Editor](docs/images/annotation-editor.png)
-*Canvas-based visual editor for validating and correcting AI detections*
-
-### Thermal Analysis Results
-![Analysis Results](docs/images/analysis-results.png)
-*Detailed anomaly detection with confidence scores and bounding boxes*
 
 ---
 
@@ -556,10 +672,66 @@ wsl --cd "/mnt/c/.../Model_Inference" -- ./run_inference.sh \
   --sensitivity 1.5
 ```
 
+## Maintenance Records 
+
+There is a full digital maintenance-record workflow so each inspection can produce a structured, editable, and exportable maintenance record.
+
+- **Generate:** When an inspection has a maintenance image and analysis, the system can create a maintenance record form tied to the inspection and transformer.
+- **Edit:** Authorized users can edit fields (inspector name, status, electrical readings, corrective action, recommended action, engineer notes, follow-up dates, etc.).
+- **Save / Version:** Records are saved to the database and include  timestamps and a DRAFT, SUBMITTED, REVIEWED, APPROVED status.
+- **Export:** PDF export of a maintenance record (PDF generation excludes raw maintenance images by default but includes annotated thumbnails and baseline images to keep reports concise).
+- **History:** Each transformer has a maintenance history viewer listing past records with download and delete (admin-only) actions.
+
+### What's Included in a Maintenance Record
+
+The maintenance record form is organized into multiple sections that engineers must complete:
+
+**Inspector Information:**
+- Inspector name, ID, and email
+- Transformer status (OK / Needs Maintenance / Urgent Attention)
+
+**Electrical Readings:**
+- 3-phase voltage readings (Phase A, B, C)
+- 3-phase current readings (Phase A, B, C)
+- Power factor, frequency
+- Temperature readings (ambient, oil, winding)
+- Load condition (No Load / Light / Normal / Heavy / Overload)
+
+**Maintenance Actions:**
+- Detected anomalies (from thermal analysis and visual inspection)
+- Corrective actions taken
+- Recommended future actions
+- Maintenance priority (Low / Medium / High / Critical)
+- Scheduled maintenance date
+- Parts replaced and materials used
+
+**Follow-up & Documentation:**
+- Engineer notes and additional remarks
+- Follow-up requirements and dates
+- Safety observations
+- Compliance check status and notes
+
+### Export Formats Available
+
+Maintenance records can be exported in multiple formats:
+
+**PDF Export:**
+- Professional report format with transformer metadata
+- Includes annotated thermal images and baseline imagery
+- Excludes raw maintenance images to keep file size manageable
+- Suitable for official documentation and regulatory compliance
+
+**CSV Export:**
+- Tabular format with all field data
+- Ideal for data analysis and spreadsheet integration
+- Can export individual records or bulk export all records for a transformer
+- Includes timestamps and status information
+
+---
 ## 📁 Project Structure
 
 ```
-transformer-image-manager-2/
+transformer-image-manager-4/
 ├── transformer-manager-frontend/          # React Frontend
 │   ├── src/
 │   │   ├── components/                    # React Components
@@ -573,9 +745,9 @@ transformer-image-manager-2/
 │   │   ├── SettingsContext.js            # ML settings state management
 │   │   └── App.js                        # Main application
 │   └── package.json                      # Node.js dependencies
-│
-├── transformer-manager-backkend/          # Spring Boot Backend
-│   ├── src/main/java/com/example/transformer_manager_backkend/
+
+├── transformer-manager-backend/          # Spring Boot Backend
+│   ├── src/main/java/com/example/transformer_manager_backend/
 │   │   ├── controller/                   # REST Controllers
 │   │   │   ├── AnnotationController.java # Annotation CRUD and export APIs
 │   │   │   ├── AnomalyAnalysisController.java
@@ -594,8 +766,8 @@ transformer-image-manager-2/
 │   │       ├── AnnotationRepository.java # Annotation data access
 │   │       └── AnnotationBoxRepository.java # Bounding box operations
 │   └── pom.xml                          # Maven dependencies
-│
-├── automatic-anamoly-detection/           # ML Engine
+
+├── automatic-anomaly-detection/           # ML Engine
 │   ├── Model_Inference/                  # Inference Pipeline
 │   │   ├── inference_core_local.py      # Main ML processing script
 │   │   ├── run_inference.sh             # Linux execution script
@@ -604,11 +776,11 @@ transformer-image-manager-2/
 │   │   └── model_weights/               # Pre-trained model files
 │   ├── ml_model.md                      # ML model documentation
 │   └── wsl_setup.md                     # WSL environment setup
-│
+
 ├── uploads/                             # File storage
 │   └── analysis/                        # Processed images with bounding boxes
 └── temp/                               # Temporary processing workspace
-    └── anomaly-analysis/               # Annotation session workspaces
+  └── anomaly-analysis/               # Annotation session workspaces
 ```
 
 ## 🚀 Quick Start Guide
@@ -624,140 +796,6 @@ Before setting up ThermoSight, ensure you have the following installed:
 - [ ] **Python 3.8+** (in WSL environment)
 - [ ] **Git** for repository cloning
 - [ ] **PostgreSQL client** (optional, for database management)
-
-### 🔧 Installation Steps
-
-#### Step 1: Clone Repository
-
-```bash
-git clone https://github.com/ThermoSight/transformer-image-manager-3.git
-cd transformer-image-manager-3
-```
-
-#### Step 2: Database Setup
-
-<details>
-<summary><strong>Option A: Neon PostgreSQL (Recommended)</strong></summary>
-
-1. **Create Neon Account**:
-   - Visit [neon.tech](https://neon.tech)
-   - Sign up and create a new project
-   - Note the connection string provided
-
-2. **Configure Application**:
-   ```properties
-   # In transformer-manager-backkend/src/main/resources/application.properties
-   spring.datasource.url=jdbc:postgresql://[YOUR_NEON_HOST]/[DATABASE_NAME]
-   spring.datasource.username=[USERNAME]
-   spring.datasource.password=[PASSWORD]
-   ```
-
-**Benefits**: Serverless, auto-scaling, free tier available
-
-</details>
-
-<details>
-<summary><strong>Option B: Local PostgreSQL</strong></summary>
-
-1. **Install PostgreSQL**:
-   ```bash
-   # Windows (using Chocolatey)
-   choco install postgresql
-   
-   # Or download from postgresql.org
-   ```
-
-2. **Create Database**:
-   ```sql
-   CREATE DATABASE thermosight;
-   CREATE USER thermosight_user WITH PASSWORD 'your_password';
-   GRANT ALL PRIVILEGES ON DATABASE thermosight TO thermosight_user;
-   ```
-
-3. **Configure Application**:
-   ```properties
-   spring.datasource.url=jdbc:postgresql://localhost:5432/thermosight
-   spring.datasource.username=thermosight_user
-   spring.datasource.password=your_password
-   ```
-
-</details>
-
-#### Step 3: Backend Setup
-
-```bash
-cd transformer-manager-backkend
-
-# Install dependencies and compile
-mvn clean install
-
-# Run the application
-mvn spring-boot:run
-
-# Verify startup
-curl http://localhost:8080/actuator/health
-```
-
-**Expected Output**: `{"status":"UP"}`
-
-#### Step 4: Frontend Setup
-
-```bash
-cd transformer-manager-frontend
-
-# Install dependencies
-npm install
-
-# Start development server
-npm start
-
-# Application opens at http://localhost:3000
-```
-
-#### Step 5: ML Environment Setup (WSL)
-
-```bash
-# Enable WSL2 (run as Administrator)
-wsl --install
-
-# Restart computer, then continue in WSL terminal
-cd /mnt/c/path/to/transformer-image-manager-3/automatic-anamoly-detection
-
-# Create virtual environment
-python3 -m venv .venv
-source .venv/bin/activate
-
-# Install ML dependencies
-pip install --upgrade pip setuptools wheel
-pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cpu
-pip install -r requirements.txt
-
-# Verify installation
-python -c "import torch, anomalib; print('✅ ML Environment Ready!')"
-```
-
-### ✅ Verification Steps
-
-1. **Backend Health Check**:
-   ```bash
-   curl http://localhost:8080/actuator/health
-   # Expected: {"status":"UP"}
-   ```
-
-2. **Frontend Access**:
-   - Open browser to `http://localhost:3000`
-   - Should see ThermoSight login page
-
-3. **Database Connection**:
-   - Check backend logs for successful database connection
-   - Tables should auto-create on first startup
-
-4. **ML Pipeline Test**:
-   ```bash
-   # In WSL, test ML inference
-   cd /mnt/c/.../automatic-anamoly-detection/Model_Inference
-   python inference_core_local.py --help
-   ```
 
 ### 🎉 First Steps
 
@@ -1227,13 +1265,12 @@ Authorization: Bearer {jwt_token}
 <details>
 <summary><strong>Deployment & Infrastructure Limitations</strong></summary>
 
-| Limitation | Impact | Planned Resolution | Timeline |
-|------------|--------|-------------------|----------|
-| **Local Development Only** | Production deployment not automated | Docker containerization + CI/CD | Q1 2026 |
-| **Manual Setup Required** | Time-intensive initial configuration | Installation automation scripts | Q4 2025 |
-| **WSL Dependency** | Windows-only ML processing | Cross-platform containerization | Q2 2026 |
-| **Single-node Processing** | Limited concurrent ML analysis | Distributed processing cluster | Q2 2026 |
-| **Local File Storage** | Scalability and backup challenges | Cloud storage integration | Q1 2026 |
+| Limitation | Impact | Planned Resolution |
+|------------|--------|-------------------|
+| **Local Development Only** | Production deployment not automated | Docker containerization + CI/CD |
+| **Manual Setup Required** | Time-intensive initial configuration | Installation automation scripts |
+| **Single-node Processing** | Limited concurrent ML analysis | Distributed processing cluster |
+| **Local File Storage** | Scalability and backup challenges | Cloud storage integration |
 
 </details>
 
@@ -1243,81 +1280,21 @@ Authorization: Bearer {jwt_token}
 <summary><strong>Current System Limitations</strong></summary>
 
 **Performance Constraints:**
-- 🔄 **Sequential ML Processing**: One image analyzed at a time
-- 💾 **Memory Usage**: Peak usage during large image processing
+- 🔄 **Local running**: Both Frontend and Backend run locally
 - 🗄️ **Database Connections**: Limited by free tier constraints
-- 📁 **File Storage**: Local filesystem dependency
 - 🌐 **Network Latency**: Direct database connections required
-
-**Feature Limitations:**
-- 🤖 **Model Updates**: Manual model weight replacement
-- 📊 **Analytics**: Basic metrics without advanced dashboards
-- 👥 **Multi-tenancy**: Single organization support only
-- 🔄 **Real-time Collaboration**: No simultaneous annotation editing
-- 📱 **Mobile Optimization**: Desktop-first design
+- 🗄️ **Local Storage**: Images and json files are stored locally
 
 </details>
 
 ### 🚀 Roadmap & Future Enhancements
 
 <details>
-<summary><strong>Planned Improvements (2025-2026)</strong></summary>
+<summary><strong>Planned Improvements</strong></summary>
 
-#### Q4 2025 - Foundation Improvements
 - [ ] **Docker Containerization**: Complete application containerization
-- [ ] **Setup Automation**: One-click installation scripts
-- [ ] **Documentation**: Comprehensive user and developer guides
-- [ ] **Testing Suite**: Automated integration and unit tests
-- [ ] **CI/CD Pipeline**: GitHub Actions workflow implementation
-
-#### Q1 2026 - Cloud Migration
-- [ ] **Cloud Deployment**: AWS/Azure production deployment
-- [ ] **Cloud Storage**: S3/Azure Blob Storage integration
-- [ ] **Database Migration**: Managed PostgreSQL service
-- [ ] **CDN Integration**: Static asset optimization
-- [ ] **SSL Certificates**: Automated certificate management
-
-#### Q2 2026 - Scalability & Performance
-- [ ] **Distributed ML Processing**: Kubernetes-based ML cluster
-- [ ] **GPU Acceleration**: CUDA/OpenCL model inference
-- [ ] **Caching Layer**: Redis implementation for performance
-- [ ] **Load Balancing**: Multi-instance deployment support
-- [ ] **Database Optimization**: Query optimization and indexing
-
-#### Q3 2026 - Advanced Features
-- [ ] **Real-time Collaboration**: Simultaneous annotation editing
-- [ ] **Advanced Analytics**: Comprehensive reporting dashboard
-- [ ] **Mobile Application**: Native iOS/Android apps
-- [ ] **API Rate Limiting**: Enhanced security and fair usage
-- [ ] **Multi-tenancy**: Organization-based isolation
-
-#### Q4 2026 - AI/ML Enhancements
-- [ ] **Model Versioning**: MLOps pipeline with A/B testing
-- [ ] **Auto-ML Pipeline**: Automated model retraining
-- [ ] **Custom Model Training**: User-specific model fine-tuning
-- [ ] **Federated Learning**: Privacy-preserving model updates
-- [ ] **Explainable AI**: Model decision transparency
-
-</details>
-
-### 🎯 Enterprise Features (Future)
-
-<details>
-<summary><strong>Advanced Capabilities Under Development</strong></summary>
-
-**Enterprise Integration:**
-- 🏢 **SSO Integration**: SAML/OAuth2 enterprise authentication
-- 📊 **Business Intelligence**: PowerBI/Tableau integration
-- 🔌 **API Gateway**: Enterprise API management
-- 📋 **Compliance Tools**: GDPR/HIPAA compliance features
-- 🔒 **Advanced Security**: SOC2/ISO 27001 compliance
-
-**Advanced ML Features:**
-- 🧠 **Multi-Modal Analysis**: Text + image analysis capabilities
-- 📈 **Predictive Maintenance**: Time-series anomaly prediction
-- 🎯 **Active Learning**: Intelligent annotation suggestion
-- 🔄 **Transfer Learning**: Domain adaptation capabilities
-- 📊 **Uncertainty Quantification**: Confidence interval estimation
+- [ ] **Cloud hosting**: Host the website on cloud
+- [ ] **Cloud storage**
 
 </details>
 
@@ -1380,20 +1357,6 @@ Authorization: Bearer {jwt_token}
 
 ---
 
-## 📄 License & Legal
-
-### 📜 MIT License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
-**Key Points:**
-- ✅ **Commercial Use**: Permitted for commercial applications
-- ✅ **Modification**: Allowed to modify and distribute
-- ✅ **Distribution**: Can redistribute with proper attribution
-- ✅ **Private Use**: Permitted for private/internal use
-- ❌ **Liability**: No warranty or liability provided
-- ❌ **Trademark**: Trademark rights not granted
-
 ### 🔒 Data Privacy & Security
 
 **Privacy Commitment:**
@@ -1402,37 +1365,6 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 - 🗂️ **Local Processing**: Images processed on user infrastructure
 - 🚫 **No External Sharing**: Data not shared with third parties
 - 📝 **Audit Trail**: Complete logging of data access
-
----
-
-## 📞 Support & Contact
-
-### 🆘 Getting Help
-
-<details>
-<summary><strong>Support Channels</strong></summary>
-
-**Technical Support:**
-- 📚 **Documentation**: Check README and wiki first
-- 🐛 **Issue Tracker**: [GitHub Issues](https://github.com/ThermoSight/transformer-image-manager-3/issues)
-- 💬 **Discussions**: [GitHub Discussions](https://github.com/ThermoSight/transformer-image-manager-3/discussions)
-- 📧 **Email Support**: support@thermosight.dev
-- 💼 **Enterprise Support**: enterprise@thermosight.dev
-
-**Community Resources:**
-- � **Wiki**: Comprehensive documentation and guides
-- 🎥 **Video Tutorials**: Setup and usage demonstrations
-- 📋 **FAQ**: Common questions and solutions
-- 🔧 **Troubleshooting**: Step-by-step problem resolution
-
-</details>
-
-### 🌟 Stay Connected
-
-- 🐙 **GitHub**: [@ThermoSight](https://github.com/ThermoSight)
-- 🌐 **Website**: [thermosight.dev](https://thermosight.dev)
-- 📧 **Newsletter**: Subscribe for updates and releases
-- 🐦 **Social Media**: Follow for announcements
 
 ---
 
@@ -1448,6 +1380,6 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ---
 
-**Made with ❤️ by the ThermoSight Team | © 2025 ThermoSight Technologies**
+**Made with ❤️ by the ThermoSight Team**
 
 </div>
