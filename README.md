@@ -912,29 +912,6 @@ pip install -r requirements.txt
 python -c "import torch, anomalib; print('✅ ML Environment Ready!')"
 ```
 
-### ✅ Verification Steps
-
-1. **Backend Health Check**:
-   ```bash
-   curl http://localhost:8080/actuator/health
-   # Expected: {"status":"UP"}
-   ```
-
-2. **Frontend Access**:
-   - Open browser to `http://localhost:3000`
-   - Should see ThermoSight login page
-
-3. **Database Connection**:
-   - Check backend logs for successful database connection
-   - Tables should auto-create on first startup
-
-4. **ML Pipeline Test**:
-   ```bash
-   # In WSL, test ML inference
-   cd /mnt/c/.../automatic-anamoly-detection/Model_Inference
-   python inference_core_local.py --help
-   ```
-
 ### 🎉 First Steps
 
 1. **Create Admin Account**: Use the registration endpoint or database insert
