@@ -1,4 +1,142 @@
 # ThermoSight - Transformer Management System
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Java](https://img.shields.io/badge/Java-17-orange.svg)](https://www.oracle.com/java/)
+[![React](https://img.shields.io/badge/React-19.1.1-blue.svg)](https://reactjs.org/)
+[![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.5.4-green.svg)](https://spring.io/projects/spring-boot)
+[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-15+-blue.svg)](https://www.postgresql.org/)
+[![Python](https://img.shields.io/badge/Python-3.8+-yellow.svg)](https://www.python.org/)
+
+> **🔥 Advanced AI-Powered Thermal Anomaly Detection for Electrical Infrastructure**
+
+A comprehensive transformer inspection and anomaly detection system that combines thermal image analysis with machine learning for predictive maintenance of electrical transformers. ThermoSight revolutionizes electrical maintenance through intelligent thermal analysis, providing real-time anomaly detection, interactive annotation capabilities, and continuous model improvement.
+
+
+# Setup Instructions
+
+## Prerequisites
+
+### 1. Install Java (if not already installed)
+- *Required:* Java 17 or higher
+- *Download from:* https://adoptium.net/
+- Choose the latest LTS version (Java 21 recommended)
+
+### 2. Install Node.js (if not already installed)
+- *Required:* Node.js 14 or higher
+- *Download from:* https://nodejs.org/
+
+### 3. Install Python (for ML Model - Optional)
+- *Required:* Python 3.8 or higher
+- *Download from:* https://www.python.org/
+- *Note:* The ML model is hosted on Hugging Face Space, but local setup is available
+
+## Setup Steps
+
+### Step 1: Clone the Repository
+```bash
+git clone https://github.com/ThermoSight/transformer-image-manager-4.git
+cd transformer-image-manager-4
+```
+
+### Step 2: Find Your Java Installation Path
+Run this command to locate Java:
+```powershell
+where.exe java
+```
+
+You'll see output like: C:\Program Files\Eclipse Adoptium\jdk-21.0.8.9-hotspot\bin\java.exe
+
+- *Your JAVA_HOME path* is everything except \bin\java.exe. For example:
+```bash
+C:\Program Files\Eclipse Adoptium\jdk-21.0.8.9-hotspot
+```
+
+### Step 3: Run the Backend
+- Replace <YOUR_JDK_PATH> with the path from Step 2:
+
+*PowerShell:*
+```
+$env:JAVA_HOME = '<YOUR_JDK_PATH>'; cd transformer-manager-backkend; .\mvnw.cmd spring-boot:run
+```
+
+*Example:*
+
+$env:JAVA_HOME = 'C:\Program Files\Eclipse Adoptium\jdk-21.0.8.9-hotspot'; cd transformer-manager-backkend; .\mvnw.cmd spring-boot:run
+
+
+- The backend will start on *http://localhost:8080*
+
+### Step 4: Run the Frontend
+- Open a *new terminal* and run:
+```bash
+cd transformer-manager-frontend
+npm install
+npm start
+```
+
+- The frontend will start on *http://localhost:3000*
+
+### Step 5: ML Model Setup (Optional - for local inference)
+
+**Option 1: Use Hosted Model (Recommended)**
+- The PatchCore anomaly detection model is hosted at: https://huggingface.co/spaces/Lasidu/automatic-anamoly-detection
+- No local setup required - the backend automatically uses the hosted API
+- Supports real-time thermal image analysis with confidence scoring
+
+**Option 2: Local ML Setup**
+```bash
+cd automatic-anamoly-detection
+python -m venv .venv
+# Windows: .venv\Scripts\activate
+# Linux/WSL: source .venv/bin/activate
+pip install -r requirements.txt
+python app.py
+```
+- Local model runs on port 7860
+- Update backend configuration to use `http://localhost:7860` instead of Hugging Face Space
+
+**Special note:** The application uses hosted services by default — the production database is hosted on Neon (managed/serverless PostgreSQL), so there is no need to run a local database for general usage. Similarly, the PatchCore ML model is available on Hugging Face Spaces (hosted). Local database or ML setup is optional and intended for offline development or advanced testing; if you choose local services, follow the "Option B: Local PostgreSQL" and "Option 2: Local ML Setup" steps above.
+
+
+
+## Default Login Credentials
+
+*Admin Account:*
+- Username: admin1
+- Password: admin1pass
+
+*User Account:*
+- Username: user1
+- Password: user1pass
+
+## Troubleshooting
+
+*"JAVA_HOME is not defined correctly" error:*
+- Make sure you replaced <YOUR_JDK_PATH> with your actual Java path
+- Ensure the path doesn't include \bin\java.exe
+- Restart your terminal after setting JAVA_HOME
+
+*Backend won't start:*
+- Verify Java version: java -version (must be 17+)
+- Check if port 8080 is already in use
+
+*Frontend won't start:*
+- Verify Node.js is installed: node -v
+- Delete node_modules and run npm install again
+
+*Images not loading in the website:*
+- If images do not appear when running the site, confirm you started the backend from the correct folder (the `transformer-manager-backkend` directory) and used the backend start command shown above. In PowerShell you can run:
+
+```powershell
+$env:JAVA_HOME = '<YOUR_JDK_PATH>'; cd transformer-manager-backkend; .\mvnw.cmd spring-boot:run
+```
+
+Also check that the `uploads/` folder exists and contains the expected files, and verify the frontend is configured to point to the correct backend URL (default `http://localhost:8080`). Restart the backend after correcting paths.
+
+*ML Model issues:*
+- Check Hugging Face Space status at: https://huggingface.co/spaces/Lasidu/automatic-anamoly-detection
+- For local setup: Ensure Python 3.8+ and all dependencies are installed
+- Verify model weights are available in `Model_Inference/model_weights/`
+
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Java](https://img.shields.io/badge/Java-17-orange.svg)](https://www.oracle.com/java/)
