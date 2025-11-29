@@ -1384,6 +1384,6 @@ Authorization: Bearer {jwt_token}
 
 ---
 
-**Made with ❤️ by the ThermoSight Team | © 2025 ThermoSight Technologies**
+**Made with ❤️ by the ThermoSight Team**
 
 </div>
