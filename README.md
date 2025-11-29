@@ -1273,7 +1273,6 @@ Authorization: Bearer {jwt_token}
 |------------|--------|-------------------|
 | **Local Development Only** | Production deployment not automated | Docker containerization + CI/CD |
 | **Manual Setup Required** | Time-intensive initial configuration | Installation automation scripts |
-
 | **Single-node Processing** | Limited concurrent ML analysis | Distributed processing cluster |
 | **Local File Storage** | Scalability and backup challenges | Cloud storage integration |
 
