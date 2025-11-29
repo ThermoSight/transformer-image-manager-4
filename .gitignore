@@ -2,9 +2,9 @@
 *.jpg
 *.png
 
-# Allow .jpg and .png files in the ./uploads directory and its subdirectories
-!uploads/**/*.jpg
-!uploads/**/*.png
+# Allow .jpg and .png files in the ./transformer-manager-backkend/uploads directory and its subdirectories
+!/transformer-manager-backkend/uploads/**/*.jpg
+!/transformer-manager-backkend/uploads/**/*.png
 
 # Ignore other specific directories and files
 automatic-anamoly-detection/TX/

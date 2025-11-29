@@ -35,6 +35,7 @@ const MaintenanceRecordForm = ({
   const [success, setSuccess] = useState("");
   const [toastMessage, setToastMessage] = useState("");
   const [showToast, setShowToast] = useState(false);
+  const [autoFilled, setAutoFilled] = useState(false);
   const [activeTab, setActiveTab] = useState("inspector");
   const [recordMetadata, setRecordMetadata] = useState({
     createdAt: null,
@@ -110,6 +111,11 @@ const MaintenanceRecordForm = ({
     fetchMaintenanceRecord();
   }, [inspectionId]);
 
+  useEffect(() => {
+    autofillFromAnalysis();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [inspectionId]);
+
   const fetchMaintenanceRecord = async (silent = false) => {
     if (!inspectionId) {
       return;
@@ -118,6 +124,7 @@ const MaintenanceRecordForm = ({
       if (!silent) {
         setLoading(true);
       }
+      setAutoFilled(false);
       const response = await axios.get(
         `http://localhost:8080/api/maintenance-records/inspection/${inspectionId}`,
         {
@@ -195,6 +202,7 @@ const MaintenanceRecordForm = ({
       if (!silent) {
         setLoading(false);
       }
+      autofillFromAnalysis();
     }
   };
 
@@ -204,6 +212,115 @@ const MaintenanceRecordForm = ({
       ...formData,
       [name]: type === "checkbox" ? checked : value,
     });
+  };
+
+  const autofillFromAnalysis = async () => {
+    if (autoFilled) return;
+
+    const needsAnomalies = !formData.detectedAnomalies;
+    const needsActions = !formData.correctiveActions;
+    if (!needsAnomalies && !needsActions) {
+      setAutoFilled(true);
+      return;
+    }
+
+    try {
+      const headers = { Authorization: `Bearer ${token}` };
+      const requests = [];
+
+      if (needsAnomalies) {
+        requests.push(
+          axios.get(
+            `http://localhost:8080/api/analysis/inspection/${inspectionId}`,
+            { headers, withCredentials: true }
+          )
+        );
+      } else {
+        requests.push(Promise.resolve(null));
+      }
+
+      if (needsActions) {
+        requests.push(
+          axios.get(
+            `http://localhost:8080/api/annotations/inspection/${inspectionId}`,
+            { headers, withCredentials: true }
+          )
+        );
+      } else {
+        requests.push(Promise.resolve(null));
+      }
+
+      const [analysisResp, annotationsResp] = await Promise.all(requests);
+
+      let detectedText = formData.detectedAnomalies;
+      if (needsAnomalies && analysisResp?.data) {
+        const jobs = Array.isArray(analysisResp.data) ? analysisResp.data : [];
+        const completed = jobs.filter((j) => j.status === "COMPLETED");
+        const lines = [];
+        completed.forEach((job) => {
+          const label = job.image ? `Image ${job.image.id}` : "Image";
+          if (job.resultJson) {
+            try {
+              const parsed = JSON.parse(job.resultJson);
+              const boxes = Array.isArray(parsed.boxes) ? parsed.boxes : [];
+              boxes.forEach((box) => {
+                const type = box.type || "Anomaly";
+                const conf =
+                  typeof box.confidence === "number"
+                    ? ` ${(box.confidence * 100).toFixed(1)}%`
+                    : "";
+                lines.push(`${label}: ${type}${conf}`);
+              });
+            } catch (err) {
+              // ignore parse errors
+            }
+          }
+        });
+        if (lines.length > 0) {
+          detectedText = lines.join("\n");
+        }
+      }
+
+      let actionsText = formData.correctiveActions;
+      if (needsActions && annotationsResp?.data) {
+        const annotations = Array.isArray(annotationsResp.data)
+          ? annotationsResp.data
+          : [];
+        const lines = [];
+        annotations.forEach((ann) => {
+          const imgId = ann.analysisJob?.image?.id;
+          const label = imgId ? `Image ${imgId}` : "Image";
+          const boxes = Array.isArray(ann.annotationBoxes)
+            ? ann.annotationBoxes
+            : [];
+          boxes
+            .filter(
+              (b) =>
+                b.action &&
+                b.action !== "UNCHANGED" &&
+                b.action !== "UNCHANGED_BOX"
+            )
+            .forEach((b) => {
+              const type = b.type || "Anomaly";
+              lines.push(`${label}: ${b.action} - ${type}`);
+            });
+        });
+        if (lines.length > 0) {
+          actionsText = lines.join("\n");
+        }
+      }
+
+      setFormData((prev) => ({
+        ...prev,
+        detectedAnomalies: needsAnomalies && detectedText ? detectedText : prev.detectedAnomalies,
+        correctiveActions: needsActions && actionsText ? actionsText : prev.correctiveActions,
+      }));
+    } catch (err) {
+      // silent failure; user can still type manually
+      console.warn("Autofill failed", err);
+    } finally {
+      setAutoFilled(true);
+    }
   };
 
   const handleSave = async (submit = false) => {
@@ -755,16 +872,16 @@ const MaintenanceRecordForm = ({
               </>
             }
           >
-            <Form.Group className="mb-3">
-              <Form.Label>Detected Anomalies</Form.Label>
-              <Form.Control
-                as="textarea"
-                rows={3}
-                name="detectedAnomalies"
-                value={formData.detectedAnomalies}
-                onChange={handleChange}
-                placeholder="List all detected anomalies from thermal analysis and visual inspection..."
-              />
+              <Form.Group className="mb-3">
+                <Form.Label>Detected Anomalies</Form.Label>
+                <Form.Control
+                  as="textarea"
+                  rows={5}
+                  name="detectedAnomalies"
+                  value={formData.detectedAnomalies}
+                  onChange={handleChange}
+                  placeholder="List all detected anomalies from thermal analysis and visual inspection..."
+                />
             </Form.Group>
 
             <Form.Group className="mb-3">
