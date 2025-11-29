@@ -161,22 +161,6 @@ A comprehensive transformer inspection and anomaly detection system that combine
 
 ---
 
-## 📸 System Screenshots
-
-### Main Dashboard
-![Dashboard Overview](docs/images/dashboard-overview.png)
-*Real-time monitoring of transformer inspections and analysis queue*
-
-### Interactive Annotation Editor
-![Annotation Editor](docs/images/annotation-editor.png)
-*Canvas-based visual editor for validating and correcting AI detections*
-
-### Thermal Analysis Results
-![Analysis Results](docs/images/analysis-results.png)
-*Detailed anomaly detection with confidence scores and bounding boxes*
-
----
-
 ## 🏗️ System Architecture
 
 ### 📐 Overview
